@@ -1,0 +1,35 @@
+networks:
+  linkshort-net:
+    name: linkshort-net
+
+services:
+  linkshort:
+    image: ghcr.io/broodco/linkshort:latest
+    container_name: linkshort
+    restart: unless-stopped
+    networks: [linkshort-net]
+    ports:
+      - "127.0.0.1:8972:8080"
+    volumes:
+      - /volume1/docker/linkshort/data:/app/data
+    environment:
+      - TZ=Europe/Brussels
+      - PORT=8080
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_POLL_INTERVAL=300
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_CLEANUP=true

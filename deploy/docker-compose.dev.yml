@@ -1,0 +1,12 @@
+services:
+  linkshort:
+    image: linkshort:local
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8972:8080"
+    volumes:
+      - ../data:/app/data
+    environment:
+      - TZ=Europe/Brussels
