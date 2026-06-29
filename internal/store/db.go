@@ -12,7 +12,7 @@ type Store struct {
 }
 
 func New(path string) (*Store, error) {
-	db, err := sql.Open("sqlite", path)
+	db, err := sql.Open("sqlite", path+"?_parse_time=true")
 	if err != nil {
 		return nil, err
 	}
