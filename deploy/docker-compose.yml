@@ -1,6 +1,7 @@
 networks:
   linkshort-net:
     name: linkshort-net
+    external: true
 
 services:
   linkshort:
