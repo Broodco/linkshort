@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>linkshort — admin</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2/dist/htmx.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-brand">
+        <i class="ti ti-link"></i>
+        linkshort admin
+    </div>
+    <span class="topbar-meta">{{.BaseURL}}</span>
+</header>
+
+<div class="main">
+    <div class="content">
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-val">{{.LinkCount}}</div>
+                <div class="stat-label">Liens actifs</div>
+            </div>
+            <div class="stat">
+                <div class="stat-val">{{.ClickCount}}</div>
+                <div class="stat-label">Clics totaux</div>
+            </div>
+        </div>
+
+        <div class="section-title">Liens</div>
+
+        {{if .Error}}
+        <div class="flash flash-error">{{.Error}}</div>
+        {{end}}
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Slug</th>
+                <th>Destination</th>
+                <th>Statut</th>
+                <th style="text-align:right">Clics</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="links-table">
+            {{template "links-rows" .}}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="sidebar">
+        <div class="section-title">Nouveau lien</div>
+        <form hx-post="/admin/links"
+              hx-target="#links-table"
+              hx-swap="innerHTML"
+              hx-on::after-request="this.reset()">
+            <div class="form-group">
+                <label class="form-label">Slug</label>
+                <input class="form-input" type="text" name="slug" placeholder="mon-lien" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">URL de destination</label>
+                <input class="form-input" type="url" name="target_url" placeholder="https://..." required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Titre (optionnel)</label>
+                <input class="form-input" type="text" name="title" placeholder="Mon lien">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Expiration (optionnel)</label>
+                <input class="form-input" type="date" name="expires_at">
+            </div>
+            <div class="divider"></div>
+            <button type="submit" class="btn-primary">
+                <span class="htmx-indicator">…</span>
+                Créer le lien
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+
+{{define "links-rows"}}
+{{range .Links}}
+<tr>
+    <td><span class="slug">{{.Slug}}</span></td>
+    <td>
+        <a href="{{.TargetURL}}" target="_blank" class="url" title="{{.TargetURL}}">
+            {{.TargetURL}}
+        </a>
+    </td>
+    <td>
+        {{if not .IsActive}}
+        <span class="badge badge-inactive">
+            <i class="ti ti-ban"></i> Inactif
+        </span>
+        {{else if .IsExpired}}
+        <span class="badge badge-expired">
+            <i class="ti ti-clock"></i> Expiré
+        </span>
+        {{else}}
+        <span class="badge badge-active">
+            <i class="ti ti-circle-check"></i> Actif
+        </span>
+        {{end}}
+    </td>
+    <td class="clicks">{{.Clicks}}</td>
+    <td>
+        <div class="actions">
+            <button class="btn-icon"
+                    onclick="navigator.clipboard.writeText('{{$.BaseURL}}/{{.Slug}}')"
+                    title="Copier le lien">
+                <i class="ti ti-copy"></i>
+            </button>
+            <a href="{{$.BaseURL}}/{{.Slug}}" target="_blank" class="btn-icon" title="Ouvrir">
+                <i class="ti ti-external-link"></i>
+            </a>
+            <button class="btn-icon btn-icon-danger"
+                    hx-delete="/admin/links/{{.Slug}}"
+                    hx-target="closest tr"
+                    hx-swap="outerHTML swap:300ms"
+                    hx-confirm="Supprimer le lien /{{.Slug}} ?"
+                    title="Supprimer">
+                <i class="ti ti-trash"></i>
+            </button>
+        </div>
+    </td>
+</tr>
+{{end}}
+{{end}}

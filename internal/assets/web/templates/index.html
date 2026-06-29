@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>linkshort</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .hero { text-align: center; max-width: 420px; }
+    .hero-icon { font-size: 40px; color: var(--accent); margin-bottom: 20px; }
+    .hero-title { font-size: 28px; font-weight: 500; margin-bottom: 10px; }
+    .hero-sub { color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+    .hero-badge {
+      display: inline-block;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: var(--success-bg);
+      color: var(--success-text);
+      margin-bottom: 32px;
+    }
+    .hero-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      font-size: 13px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 7px;
+    }
+    .hero-link:hover { color: var(--text); background: var(--bg); }
+  </style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-icon">⚡</div>
+  <div class="hero-title">linkshort</div>
+  <div class="hero-sub">
+    Un raccourcisseur d'URLs self-hosted,<br>rapide et sans tracking tiers.
+  </div>
+  <div class="hero-badge">✓ Self-hosted · Open source</div>
+  <br>
+  <a href="https://github.com/broodco/linkshort" class="hero-link" target="_blank">
+    Voir le code source →
+  </a>
+</div>
+</body>
+</html>

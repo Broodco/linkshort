@@ -121,3 +121,21 @@ func (s *Store) RecordClick(linkID int64, referrer, userAgent string) {
 		log.Printf("error recording click: %v", err)
 	}
 }
+
+func (s *Store) CountClicks() (int64, error) {
+	var count int64
+	err := s.db.QueryRow(`SELECT COUNT(*) FROM clicks`).Scan(&count)
+	return count, err
+}
+
+func (s *Store) CountLinks() (int64, error) {
+	var count int64
+	err := s.db.QueryRow(`SELECT COUNT(*) FROM links WHERE is_active = 1`).Scan(&count)
+	return count, err
+}
+
+func (s *Store) ClicksPerLink(linkID int64) (int64, error) {
+	var count int64
+	err := s.db.QueryRow(`SELECT COUNT(*) FROM clicks WHERE link_id = ?`, linkID).Scan(&count)
+	return count, err
+}

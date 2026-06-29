@@ -1,10 +1,13 @@
 package main
 
 import (
+	"html/template"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/broodco/linkshort/internal/assets"
 	"github.com/broodco/linkshort/internal/handler"
 	"github.com/broodco/linkshort/internal/store"
 )
@@ -20,36 +23,63 @@ func main() {
 		dbPath = "./data/links.db"
 	}
 
-	// Initialise le store
-	s, err := store.New(dbPath)
-	if err != nil {
-		log.Fatalf("failed to open database: %v", err)
+	baseURL := os.Getenv("BASE_URL")
+	if baseURL == "" {
+		baseURL = "http://localhost:" + port
 	}
 
-	// Handlers
-	redirectHandler := handler.NewRedirectHandler(s)
-	adminHandler := handler.NewAdminHandler(s)
-
-	mux := http.NewServeMux()
-
-	// Health check
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"status":"ok","service":"linkshort"}`))
-	})
-
-	// Redirection
-	mux.Handle("GET /{slug}", redirectHandler)
-
-	// Admin
 	adminPass := os.Getenv("ADMIN_PASS")
 	if adminPass == "" {
 		adminPass = "changeme"
 	}
 
+	s, err := store.New(dbPath)
+	if err != nil {
+		log.Fatalf("failed to open database: %v", err)
+	}
+
+	tmpl, err := template.ParseFS(assets.WebFS, "web/templates/*.html")
+	if err != nil {
+		log.Fatalf("failed to parse templates: %v", err)
+	}
+
+	staticFS, err := fs.Sub(assets.WebFS, "web/static")
+	if err != nil {
+		log.Fatalf("failed to create static fs: %v", err)
+	}
+
+	adminHandler := handler.NewAdminHandler(s, tmpl, baseURL)
+	redirectHandler := handler.NewRedirectHandler(s, tmpl)
+
+	mux := http.NewServeMux()
+
+	// Health
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status":"ok","service":"linkshort"}`))
+	})
+
+	// Static files
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
+
+	// Admin UI
+	mux.HandleFunc("GET /admin", basicAuth(adminPass, adminHandler.HandlePage))
+	mux.HandleFunc("POST /admin/links", basicAuth(adminPass, adminHandler.HandleHTMXCreate))
+	mux.HandleFunc("DELETE /admin/links/{slug}", basicAuth(adminPass, adminHandler.HandleHTMXDelete))
+
+	// API JSON
 	mux.HandleFunc("POST /api/links", basicAuth(adminPass, adminHandler.HandleCreateLink))
 	mux.HandleFunc("GET /api/links", basicAuth(adminPass, adminHandler.HandleListLinks))
 	mux.HandleFunc("DELETE /api/links/{slug}", basicAuth(adminPass, adminHandler.HandleDeleteLink))
+
+	// Index
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		_ = tmpl.ExecuteTemplate(w, "index.html", nil)
+	})
+
+	// Redirection
+	mux.Handle("GET /{slug}", redirectHandler)
+
 	log.Printf("starting on :%s", port)
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)

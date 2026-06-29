@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"html/template"
 	"net/http"
 	"time"
 
@@ -10,23 +11,29 @@ import (
 
 type RedirectHandler struct {
 	store *store.Store
+	tmpl  *template.Template
 }
 
-func NewRedirectHandler(s *store.Store) *RedirectHandler {
-	return &RedirectHandler{store: s}
+func NewRedirectHandler(s *store.Store, tmpl *template.Template) *RedirectHandler {
+	return &RedirectHandler{store: s, tmpl: tmpl}
+}
+
+func (h *RedirectHandler) NotFound(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+	_ = h.tmpl.ExecuteTemplate(w, "404.html", nil)
 }
 
 func (h *RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	slug := r.PathValue("slug")
 	if slug == "" {
-		http.NotFound(w, r)
+		h.NotFound(w)
 		return
 	}
 
 	link, err := h.store.GetLinkBySlug(slug)
 	if err != nil {
 		if errors.Is(err, store.ErrNotFound) {
-			http.NotFound(w, r)
+			h.NotFound(w)
 			return
 		}
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -34,7 +41,7 @@ func (h *RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if link.ExpiresAt != nil && time.Now().After(*link.ExpiresAt) {
-		http.NotFound(w, r)
+		h.NotFound(w)
 		return
 	}
 
