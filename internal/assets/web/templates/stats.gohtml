@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stats — {{.Link.Slug}}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-brand">
+    <a href="/admin" style="color: var(--text-muted); text-decoration: none; font-size: 13px;">
+      <i class="ti ti-arrow-left"></i> Admin
+    </a>
+  </div>
+  <span class="topbar-meta">{{.BaseURL}}</span>
+</header>
+
+<div style="max-width: 860px; margin: 40px auto; padding: 0 24px;">
+
+  <div style="margin-bottom: 28px;">
+    <div style="font-size: 22px; font-weight: 500; margin-bottom: 6px;">
+      /{{.Link.Slug}}
+    </div>
+    <a href="{{.Link.TargetURL}}" target="_blank" style="color: var(--text-muted); font-size: 14px; text-decoration: none;">
+      {{.Link.TargetURL}} <i class="ti ti-external-link" style="font-size: 12px;"></i>
+    </a>
+  </div>
+
+  <div class="stats" style="margin-bottom: 32px;">
+    <div class="stat">
+      <div class="stat-val">{{.TotalClicks}}</div>
+      <div class="stat-label">Clics totaux</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">{{.Link.CreatedAt.Format "02/01/2006"}}</div>
+      <div class="stat-label">Créé le</div>
+    </div>
+  </div>
+
+  <div class="section-title">Clics sur 30 jours</div>
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-top: 12px;">
+    <canvas id="chart" height="80"></canvas>
+  </div>
+
+  <div style="margin-top: 24px; display: flex; gap: 12px;">
+    <a href="{{$.BaseURL}}/qr/{{.Link.Slug}}" target="_blank" class="btn-icon" style="padding: 0 14px; width: auto; gap: 6px; font-size: 13px;">
+      <i class="ti ti-qrcode"></i> QR code
+    </a>
+    <button class="btn-icon" style="padding: 0 14px; width: auto; gap: 6px; font-size: 13px;"
+            onclick="navigator.clipboard.writeText('{{$.BaseURL}}/{{.Link.Slug}}')">
+      <i class="ti ti-copy"></i> Copier le lien
+    </button>
+  </div>
+</div>
+
+<script>
+  const labels = [{{range .Clicks}}"{{.Date}}",{{end}}];
+  const data = [{{range .Clicks}}{{.Count}},{{end}}];
+
+  new Chart(document.getElementById('chart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: '#378add',
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0 },
+          grid: { color: '#e5e5e3' }
+        },
+        x: {
+          grid: { display: false }
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>

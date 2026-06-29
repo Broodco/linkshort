@@ -38,7 +38,7 @@ func main() {
 		log.Fatalf("failed to open database: %v", err)
 	}
 
-	tmpl, err := template.ParseFS(assets.WebFS, "web/templates/*.html")
+	tmpl, err := template.ParseFS(assets.WebFS, "web/templates/*.gohtml")
 	if err != nil {
 		log.Fatalf("failed to parse templates: %v", err)
 	}
@@ -67,6 +67,7 @@ func main() {
 	mux.HandleFunc("GET /admin", basicAuth(adminPass, adminHandler.HandlePage))
 	mux.HandleFunc("POST /admin/links", basicAuth(adminPass, adminHandler.HandleHTMXCreate))
 	mux.HandleFunc("DELETE /admin/links/{slug}", basicAuth(adminPass, adminHandler.HandleHTMXDelete))
+	mux.HandleFunc("GET /admin/stats/{slug}", basicAuth(adminPass, adminHandler.HandleStats))
 
 	// API JSON
 	mux.HandleFunc("POST /api/links", basicAuth(adminPass, adminHandler.HandleCreateLink))
@@ -75,7 +76,7 @@ func main() {
 
 	// Index
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		_ = tmpl.ExecuteTemplate(w, "index.html", nil)
+		_ = tmpl.ExecuteTemplate(w, "index.gohtml", nil)
 	})
 
 	// Redirection

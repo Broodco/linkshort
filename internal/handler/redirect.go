@@ -20,7 +20,7 @@ func NewRedirectHandler(s *store.Store, tmpl *template.Template) *RedirectHandle
 
 func (h *RedirectHandler) NotFound(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNotFound)
-	_ = h.tmpl.ExecuteTemplate(w, "404.html", nil)
+	_ = h.tmpl.ExecuteTemplate(w, "404.gohtml", nil)
 }
 
 func (h *RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

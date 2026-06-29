@@ -25,7 +25,7 @@ func (h *AdminHandler) HandlePage(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-	_ = h.tmpl.ExecuteTemplate(w, "admin.html", data)
+	_ = h.tmpl.ExecuteTemplate(w, "admin.gohtml", data)
 }
 
 func (h *AdminHandler) buildPageData() (*AdminPageData, error) {
@@ -144,4 +144,29 @@ func (h *AdminHandler) HandleListLinks(w http.ResponseWriter, _ *http.Request) {
 
 func (h *AdminHandler) HandleDeleteLink(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *AdminHandler) HandleStats(w http.ResponseWriter, r *http.Request) {
+	slug := r.PathValue("slug")
+
+	link, err := h.store.GetLinkBySlug(slug)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	clicks, err := h.store.ClicksPerDay(link.ID)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	totalClicks, _ := h.store.ClicksPerLink(link.ID)
+
+	_ = h.tmpl.ExecuteTemplate(w, "stats.gohtml", map[string]any{
+		"Link":        link,
+		"Clicks":      clicks,
+		"TotalClicks": totalClicks,
+		"BaseURL":     h.baseURL,
+	})
 }

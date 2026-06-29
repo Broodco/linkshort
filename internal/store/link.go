@@ -154,3 +154,28 @@ func GenerateSlug() string {
 	}
 	return string(b)
 }
+
+func (s *Store) ClicksPerDay(linkID int64) ([]model.ClickStat, error) {
+	rows, err := s.db.Query(`
+        SELECT DATE(clicked_at) as date, COUNT(*) as count
+        FROM clicks
+        WHERE link_id = ?
+        AND clicked_at >= DATE('now', '-30 days')
+        GROUP BY DATE(clicked_at)
+        ORDER BY date ASC
+    `, linkID)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+
+	var stats []model.ClickStat
+	for rows.Next() {
+		var s model.ClickStat
+		if err := rows.Scan(&s.Date, &s.Count); err != nil {
+			return nil, err
+		}
+		stats = append(stats, s)
+	}
+	return stats, nil
+}

@@ -19,3 +19,8 @@ type Click struct {
 	Referrer  string
 	UserAgent string
 }
+
+type ClickStat struct {
+	Date  string
+	Count int64
+}
