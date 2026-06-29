@@ -1,10 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/broodco/linkshort/internal/handler"
+	"github.com/broodco/linkshort/internal/store"
 )
 
 func main() {
@@ -13,19 +15,55 @@ func main() {
 		port = "8080"
 	}
 
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "./data/links.db"
+	}
+
+	// Initialise le store
+	s, err := store.New(dbPath)
+	if err != nil {
+		log.Fatalf("failed to open database: %v", err)
+	}
+
+	// Handlers
+	redirectHandler := handler.NewRedirectHandler(s)
+	adminHandler := handler.NewAdminHandler(s)
+
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	// Health check
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = fmt.Fprintln(w, `{"status":"ok","service":"linkshort"}`)
+		_, _ = w.Write([]byte(`{"status":"ok","service":"linkshort"}`))
 	})
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = fmt.Fprintln(w, "linkshort — coming soon")
-	})
+	// Redirection
+	mux.Handle("GET /{slug}", redirectHandler)
 
+	// Admin
+	adminPass := os.Getenv("ADMIN_PASS")
+	if adminPass == "" {
+		adminPass = "changeme"
+	}
+
+	mux.HandleFunc("POST /api/links", basicAuth(adminPass, adminHandler.HandleCreateLink))
+	mux.HandleFunc("GET /api/links", basicAuth(adminPass, adminHandler.HandleListLinks))
+	mux.HandleFunc("DELETE /api/links/{slug}", basicAuth(adminPass, adminHandler.HandleDeleteLink))
 	log.Printf("starting on :%s", port)
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func basicAuth(password string, next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, pass, ok := r.BasicAuth()
+		if !ok || pass != password {
+			w.Header().Set("WWW-Authenticate", `Basic realm="linkshort"`)
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next(w, r)
 	}
 }

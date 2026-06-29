@@ -16,6 +16,8 @@ services:
     environment:
       - TZ=Europe/Brussels
       - PORT=8080
+      - DB_PATH=/app/data/links.db
+      - ADMIN_PASS=${ADMIN_PASS}
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     healthcheck:
