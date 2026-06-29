@@ -50,6 +50,7 @@ func main() {
 
 	adminHandler := handler.NewAdminHandler(s, tmpl, baseURL)
 	redirectHandler := handler.NewRedirectHandler(s, tmpl)
+	qrHandler := handler.NewQRHandler(s, baseURL)
 
 	mux := http.NewServeMux()
 
@@ -79,6 +80,9 @@ func main() {
 
 	// Redirection
 	mux.Handle("GET /{slug}", redirectHandler)
+
+	// QR Codes
+	mux.Handle("GET /qr/{slug}", qrHandler)
 
 	log.Printf("starting on :%s", port)
 	if err := http.ListenAndServe(":"+port, mux); err != nil {

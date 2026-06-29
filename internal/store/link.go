@@ -1,6 +1,7 @@
 package store
 
 import (
+	"crypto/rand"
 	"database/sql"
 	"errors"
 	"log"
@@ -12,6 +13,9 @@ import (
 var ErrNotFound = errors.New("link not found")
 
 func (s *Store) CreateLink(slug, targetURL, title string, expiresAt *time.Time) (*model.Link, error) {
+	if slug == "" {
+		slug = GenerateSlug()
+	}
 	res, err := s.db.Exec(`
         INSERT INTO links (slug, target_url, title, expires_at)
         VALUES (?, ?, ?, ?)
@@ -138,4 +142,15 @@ func (s *Store) ClicksPerLink(linkID int64) (int64, error) {
 	var count int64
 	err := s.db.QueryRow(`SELECT COUNT(*) FROM clicks WHERE link_id = ?`, linkID).Scan(&count)
 	return count, err
+}
+
+func GenerateSlug() string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	const length = 6
+	b := make([]byte, length)
+	_, _ = rand.Read(b)
+	for i := range b {
+		b[i] = charset[b[i]%byte(len(charset))]
+	}
+	return string(b)
 }

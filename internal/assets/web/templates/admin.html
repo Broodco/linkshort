@@ -59,8 +59,8 @@
               hx-swap="innerHTML"
               hx-on::after-request="this.reset()">
             <div class="form-group">
-                <label class="form-label">Slug</label>
-                <input class="form-input" type="text" name="slug" placeholder="mon-lien" required>
+                <label class="form-label">Slug <span style="color: var(--text-muted); font-weight: 400;">(optionnel)</span></label>
+                <input class="form-input" type="text" name="slug" placeholder="auto-généré si vide">
             </div>
             <div class="form-group">
                 <label class="form-label">URL de destination</label>
@@ -119,6 +119,9 @@
             </button>
             <a href="{{$.BaseURL}}/{{.Slug}}" target="_blank" class="btn-icon" title="Ouvrir">
                 <i class="ti ti-external-link"></i>
+            </a>
+            <a href="/qr/{{.Slug}}" target="_blank" class="btn-icon" title="QR code">
+                <i class="ti ti-qrcode"></i>
             </a>
             <button class="btn-icon btn-icon-danger"
                     hx-delete="/admin/links/{{.Slug}}"
