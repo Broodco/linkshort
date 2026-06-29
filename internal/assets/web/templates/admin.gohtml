@@ -30,11 +30,16 @@
             </div>
         </div>
 
-        <div class="section-title">Liens</div>
-
         {{if .Error}}
         <div class="flash flash-error">{{.Error}}</div>
         {{end}}
+
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div class="section-title" style="margin-bottom: 0;">Liens</div>
+            <input type="search" id="filter" class="form-input"
+                   placeholder="Filtrer..."
+                   style="max-width: 220px; height: 30px; font-size: 12px;">
+        </div>
 
         <table class="table">
             <thead>
@@ -82,6 +87,15 @@
         </form>
     </div>
 </div>
+<script>
+    document.getElementById('filter').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        document.querySelectorAll('#links-table tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+</script>
 </body>
 </html>
 

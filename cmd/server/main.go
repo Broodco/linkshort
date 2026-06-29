@@ -9,6 +9,7 @@ import (
 
 	"github.com/broodco/linkshort/internal/assets"
 	"github.com/broodco/linkshort/internal/handler"
+	"github.com/broodco/linkshort/internal/middleware"
 	"github.com/broodco/linkshort/internal/store"
 )
 
@@ -52,6 +53,8 @@ func main() {
 	redirectHandler := handler.NewRedirectHandler(s, tmpl)
 	qrHandler := handler.NewQRHandler(s, baseURL)
 
+	rl := middleware.NewRateLimiter(10, 30)
+
 	mux := http.NewServeMux()
 
 	// Health
@@ -80,7 +83,7 @@ func main() {
 	})
 
 	// Redirection
-	mux.Handle("GET /{slug}", redirectHandler)
+	mux.Handle("GET /{slug}", rl.Middleware(redirectHandler))
 
 	// QR Codes
 	mux.Handle("GET /qr/{slug}", qrHandler)
