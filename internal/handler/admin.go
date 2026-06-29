@@ -82,7 +82,7 @@ func (h *AdminHandler) HandleHTMXCreate(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		data, _ := h.buildPageData()
 		data.Error = "Ce slug existe déjà ou une erreur est survenue."
-		_ = h.tmpl.ExecuteTemplate(w, "links-rows", data)
+		_ = h.tmpl.ExecuteTemplate(w, "admin-content", data)
 		return
 	}
 
@@ -91,13 +91,14 @@ func (h *AdminHandler) HandleHTMXCreate(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-	_ = h.tmpl.ExecuteTemplate(w, "links-rows", data)
+	_ = h.tmpl.ExecuteTemplate(w, "admin-content", data)
 }
 
 func (h *AdminHandler) HandleHTMXDelete(w http.ResponseWriter, r *http.Request) {
 	slug := r.PathValue("slug")
 	_ = h.store.DeleteLink(slug)
-	w.WriteHeader(http.StatusOK)
+	data, _ := h.buildPageData()
+	_ = h.tmpl.ExecuteTemplate(w, "admin-content", data)
 }
 
 func (h *AdminHandler) HandleCreateLink(w http.ResponseWriter, r *http.Request) {
